@@ -27,18 +27,15 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
         private readonly IShellLocks myLocks;
         private readonly Lifetime myLifetime;
         private readonly ISolution mySolution;
-        private readonly UnityEditorProtocol myEditorProtocol;
         private readonly ILogger myLogger;
         private readonly IContextBoundSettingsStoreLive myBoundSettingsStore;
 
-        public UnityRefresher(IShellLocks locks, Lifetime lifetime, ISolution solution,
-            UnityEditorProtocol editorProtocol, ISettingsStore settingsStore,
+        public UnityRefresher(IShellLocks locks, Lifetime lifetime, ISolution solution, ISettingsStore settingsStore,
             ILogger logger)
         {
             myLocks = locks;
             myLifetime = lifetime;
             mySolution = solution;
-            myEditorProtocol = editorProtocol;
             myLogger = logger;
 
             if (solution.GetData(ProjectModelExtensions.ProtocolSolutionKey) == null)
@@ -47,23 +44,23 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
             myBoundSettingsStore = settingsStore.BindToContextLive(myLifetime, ContextRange.Smart(solution.ToDataContext()));
         }
 
-        private Task CurrentTask;
+        private Task myCurrentTask;
 
-        public Task Refresh(RefreshType force)
+        public Task Refresh(RefreshType force, EditorPluginModel model)
         {
             myLocks.AssertMainThread();
-            if (CurrentTask != null)
-                return CurrentTask;
+            if (myCurrentTask != null)
+                return myCurrentTask;
 
-            if (myEditorProtocol.UnityModel.Value == null)
+            if (model == null)
                 return new Task(()=>{});
 
             if (!myBoundSettingsStore.GetValue((UnitySettings s) => s.AllowAutomaticRefreshInUnity) && force == RefreshType.Normal)
                 return new Task(()=>{});
 
             myLogger.Verbose($"myPluginProtocolController.UnityModel.Value.Refresh.StartAsTask, force = {force}");
-            var task = myEditorProtocol.UnityModel.Value.Refresh.StartAsTask(force);
-            CurrentTask = task;
+            var task = model.Refresh.StartAsTask(force);
+            myCurrentTask = task;
 
             var lifetimeDef = Lifetime.Define(myLifetime);
             var solution = mySolution.GetProtocolSolution();
@@ -83,7 +80,7 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
                     }
                     finally
                     {
-                        CurrentTask = null;
+                        myCurrentTask = null;
                         lifetimeDef.Terminate();
                     }
                 });
@@ -102,37 +99,43 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
             ILogger logger,
             IFileSystemTracker fileSystemTracker,
             UnityHost host,
-            UnitySolutionTracker unitySolutionTracker)
+            UnitySolutionTracker unitySolutionTracker,
+            UnityEditorProtocol editorProtocol)
         {
             myLogger = logger;
 
             if (solution.GetData(ProjectModelExtensions.ProtocolSolutionKey) == null)
                 return;
 
-            unitySolutionTracker.IsUnityProjectFolder.AdviseOnce(lifetime, args =>
+            editorProtocol.UnityModel.View(lifetime, (lt, model) =>
             {
-                if (!args) return;
-                // send refresh, when we detect UnitySolution
-                host.PerformModelAction(rd => rd.Refresh.Advise(lifetime, force => { refresher.Refresh(force ? RefreshType.ForceRequestScriptReload : RefreshType.Normal); }));
-            });
-
-            unitySolutionTracker.IsUnityProject.AdviseOnce(lifetime, args =>
-            {
-                if (!args) return;
-
-                // Rgc.Guarded - beware RIDER-15577
-                myGroupingEvent = solution.Locks.GroupingEvents.CreateEvent(lifetime, "UnityRefresherOnSaveEvent",
-                    TimeSpan.FromMilliseconds(500),
-                    Rgc.Guarded, () => refresher.Refresh(RefreshType.Normal));
-
-                var protocolSolution = solution.GetProtocolSolution();
-                protocolSolution.Editors.AfterDocumentInEditorSaved.Advise(lifetime, _ =>
+                // pass refresh from frontend for UnityProjectFolder
+                if (unitySolutionTracker.IsUnityProjectFolder.HasTrueValue())
                 {
-                    myLogger.Verbose("protocolSolution.Editors.AfterDocumentInEditorSaved");
-                    myGroupingEvent.FireIncoming();
-                });
+                    host.PerformModelAction(rd => rd.Refresh.Advise(lt,
+                                        force =>
+                                        {
+                                            refresher.Refresh(force ? RefreshType.ForceRequestScriptReload : RefreshType.Normal, model);
+                                        }));
+                }
 
-                fileSystemTracker.RegisterPrioritySink(lifetime, FileSystemChange, HandlingPriority.Other);
+                // refresh on AfterDocumentInEditorSaved
+                if (unitySolutionTracker.IsUnityProject.HasTrueValue())
+                {
+                    // Rgc.Guarded - beware RIDER-15577
+                    myGroupingEvent = solution.Locks.GroupingEvents.CreateEvent(lifetime, "UnityRefresherOnSaveEvent",
+                        TimeSpan.FromMilliseconds(500),
+                        Rgc.Guarded, () => refresher.Refresh(RefreshType.Normal, model));
+
+                    var protocolSolution = solution.GetProtocolSolution();
+                    protocolSolution.Editors.AfterDocumentInEditorSaved.Advise(lifetime, _ =>
+                    {
+                        myLogger.Verbose("protocolSolution.Editors.AfterDocumentInEditorSaved");
+                        myGroupingEvent.FireIncoming();
+                    });
+
+                    fileSystemTracker.RegisterPrioritySink(lifetime, FileSystemChange, HandlingPriority.Other);
+                }
             });
         }
 

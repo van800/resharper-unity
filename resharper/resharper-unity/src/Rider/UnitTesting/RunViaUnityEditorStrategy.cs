@@ -14,7 +14,6 @@ using JetBrains.Platform.Unity.EditorPluginModel;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.Features.SolutionBuilders.Prototype.Services.Execution;
 using JetBrains.Rd.Base;
-using JetBrains.Rd.Tasks;
 using JetBrains.ReSharper.Host.Features;
 using JetBrains.ReSharper.TaskRunnerFramework;
 using JetBrains.ReSharper.UnitTestFramework;
@@ -201,7 +200,7 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider.UnitTesting
                 var lifetimeDef = lifetime.CreateNested();
                 myRiderSolutionSaver.Save(lifetime, mySolution, () =>
                 {
-                    myUnityRefresher.Refresh(RefreshType.Force).GetAwaiter().OnCompleted(()=>{ lifetimeDef.Terminate(); });
+                    myUnityRefresher.Refresh(RefreshType.Force, myEditorProtocol.UnityModel.Value).GetAwaiter().OnCompleted(()=>{ lifetimeDef.Terminate(); });
                 });
                 while (lifetimeDef.Lifetime.IsAlive)
                 {

@@ -33,6 +33,7 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
         private readonly UnityVersion myUnityVersion;
         private readonly UnitySolutionTracker myUnitySolutionTracker;
         private readonly UnityRefresher myRefresher;
+        private readonly UnityEditorProtocol myEditorProtocol;
         private readonly IContextBoundSettingsStoreLive myBoundSettingsStore;
         private readonly ProcessingQueue myQueue;
 
@@ -48,7 +49,8 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
             UnityVersion unityVersion,
             UnityHost unityHost,
             UnitySolutionTracker unitySolutionTracker,
-            UnityRefresher refresher)
+            UnityRefresher refresher,
+            UnityEditorProtocol editorProtocol)
         {
             myPluginInstallations = new JetHashSet<FileSystemPath>();
 
@@ -62,6 +64,7 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
             myUnityVersion = unityVersion;
             myUnitySolutionTracker = unitySolutionTracker;
             myRefresher = refresher;
+            myEditorProtocol = editorProtocol;
 
             myBoundSettingsStore = settingsStore.BindToContextLive(myLifetime, ContextRange.Smart(solution.ToDataContext()));
             myQueue = new ProcessingQueue(myShellLocks, myLifetime);
@@ -122,7 +125,7 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
             }
 
             QueueInstall(installationInfo);
-            myQueue.Enqueue(() => { myRefresher.Refresh(RefreshType.Normal); });
+            myQueue.Enqueue(() => { myRefresher.Refresh(RefreshType.Normal, myEditorProtocol.UnityModel.Value); });
         }
 
         private void QueueInstall(UnityPluginDetector.InstallationInfo installationInfo, bool force = false)

@@ -22,7 +22,8 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider
         {
             editorProtocol.UnityModel.View(lifetime, (lt, model) =>
             {
-                if (!unitySolutionTracker.IsUnityProjectFolder.HasTrueValue()) // avoid recurring checks for non-unity projects
+                // avoid recurring checks for non-unity projects
+                if (!unitySolutionTracker.IsUnityProjectFolder.HasTrueValue()) 
                     return;
 
                 //check connection between backend and unity editor
