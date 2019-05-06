@@ -4,6 +4,108 @@
         <name>JetBrains.Platform.RdCore35</name>
     </assembly>
     <members>
+        <member name="T:JetBrains.Collections.CollectionEx">
+            <summary>
+            Extension methods for collections
+            </summary>
+        </member>
+        <member name="M:JetBrains.Collections.CollectionEx.ContentHashCode``1(System.Collections.Generic.ICollection{``0})">
+            <summary>
+            Calculates polynomial hash code for collection.
+            Return 0 if collection == null.
+            Return `seed` (in current implementation 0x2D2816FE) if collection is empty.
+            In current implementation polynomial factor is 31.
+            </summary>
+            <param name="collection"></param>
+            <typeparam name="T"></typeparam>
+            <returns>((seed * factor + collection[0]?.GetHashCode() ?? 0) * factor + collection[1]?.GetHashCode() ?? 0) * factor + ... </returns>
+        </member>
+        <member name="M:JetBrains.Collections.CollectionEx.TryDequeue``1(System.Collections.Generic.Queue{``0},``0@)">
+            <summary>
+            Dequeue <paramref name="queue"/> if it's not empty (or do nothing).
+            </summary>
+            <param name="queue"></param>
+            <param name="res"><see cref="M:System.Collections.Generic.Queue`1.Dequeue"/> if <paramref name="queue"/>.Count > 0 at method start, `default{T}` otherwise</param>
+            <typeparam name="T"></typeparam>
+            <returns>`true` if <paramref name="queue"/>.Count > 0 at method start, `false` otherwise</returns>
+        </member>
+        <member name="M:JetBrains.Collections.CollectionEx.Enqueued``1(System.Collections.Generic.Queue{``0},``0)">
+            <summary>
+            Same as <see cref="M:System.Collections.Generic.Queue`1.Enqueue(`0)"/> but returns added element
+            </summary>
+            <param name="queue"></param>
+            <param name="toEnqueue">Element to enqueue into <paramref name="queue"/></param>
+            <typeparam name="T"></typeparam>
+            <returns>Added element <paramref name="toEnqueue"/></returns>
+        </member>
+        <member name="T:JetBrains.Collections.CompactList`1">
+            <summary>
+            Saves memory footprint and traffic for lists with single element: doesn't allocate real list
+            until number of elements is more then 1.
+            <see cref="M:JetBrains.Collections.CompactList`1.GetEnumerator"/> return struct that should save memory traffic during enumeration.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:JetBrains.Collections.EmptyEnumerator`1">
+            <summary>
+            Enumerator for empty collection.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:JetBrains.Collections.JetKeyValuePair">
+            <summary>
+            Facilitates <see cref="T:System.Collections.Generic.KeyValuePair`2"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Collections.IPriorityQueue`1">
+            <summary>
+            JetBrains interface of priority queue data structure.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:JetBrains.Collections.JetPriorityQueue`1">
+            <summary>
+            JetBrains implementation of priority queue data structure.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:JetBrains.Collections.BlockingPriorityQueue`1">
+            <summary>
+            Thread-safe implementation of priority queue data structure.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:JetBrains.Collections.BlockingPriorityQueue`1.ExtractOrBlock">
+            <summary>
+            Returns first element from queue or waits until it appears. In case of lifetime termination throws PCE.
+            </summary>
+            <returns>First element in queue</returns>
+        </member>
+        <member name="M:JetBrains.Collections.BlockingPriorityQueue`1.Enqueue(`0)">
+            <summary>
+            Enqueues an item and returns the total number of items in the queue right after enqueueing, in a thread-safe-consistent manner.
+            </summary>
+        </member>
+        <member name="M:JetBrains.Collections.BlockingPriorityQueue`1.ToArray">
+            <summary>
+            Copies data to an array, thread-safely.
+            </summary>
+        </member>
+        <member name="M:JetBrains.Collections.PriorityQueueEx.Enqueue``1(JetBrains.Collections.IPriorityQueue{``0},``0)">
+            <summary>
+            Same as <see cref="!:IPriorityQueue&lt;T&gt;.Add"/>
+            </summary>
+            <param name="queue"></param>
+            <param name="val"></param>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:JetBrains.Collections.ReferenceEqualityComparer`1">
+            <summary>
+            Comparer that uses reference equality.
+            Usage: `ReferenceEqualityComparer{T}.Default`
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
         <member name="T:JetBrains.Collections.SingletonEnumerator`1">
             <summary>
             Enumerator for imaginary collection from single value
@@ -12,24 +114,29 @@
         </member>
         <member name="T:JetBrains.Collections.Synchronized.SynchronizedDictionary`2">
             <summary>
-            This dictionary is used for Net3.5 as a poor replacement of ConcurrentDictionary. 
+            This dictionary is used for Net3.5 as a poor replacement of ConcurrentDictionary.
+            All methods are synchronized. <see cref="M:JetBrains.Collections.Synchronized.SynchronizedDictionary`2.GetEnumerator"/> copies whole content so
+            you can change collection as you want during enumeration. 
             </summary>
             <typeparam name="TK"></typeparam>
             <typeparam name="TV"></typeparam>
         </member>
+        <member name="T:JetBrains.Collections.Synchronized.SynchronizedList`1">
+            <summary>
+            This is a thread-safe list with all methods synchronized.
+            <see cref="M:JetBrains.Collections.Synchronized.SynchronizedList`1.GetEnumerator"/> copies whole content so
+            you can change collection as you want during enumeration. 
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
         <member name="T:JetBrains.Collections.Viewable.AddRemove">
             <summary>
-            Defines whether the action is <see cref="F:JetBrains.Collections.Viewable.AddRemove.Add"/> or <see cref="F:JetBrains.Collections.Viewable.AddRemove.Remove"/>.
+            Defines whether the event kind is <see cref="F:JetBrains.Collections.Viewable.AddRemove.Add"/> or <see cref="F:JetBrains.Collections.Viewable.AddRemove.Remove"/>.
             </summary>
         </member>
-        <member name="F:JetBrains.Collections.Viewable.AddRemove.Add">
+        <member name="T:JetBrains.Collections.Viewable.AddUpdateRemove">
             <summary>
-            Adding.
-            </summary>
-        </member>
-        <member name="F:JetBrains.Collections.Viewable.AddRemove.Remove">
-            <summary>
-            Removing.
+            Defines whether the event kind is <see cref="F:JetBrains.Collections.Viewable.AddUpdateRemove.Add"/>, <see cref="F:JetBrains.Collections.Viewable.AddUpdateRemove.Update"/> or <see cref="F:JetBrains.Collections.Viewable.AddUpdateRemove.Remove"/>.
             </summary>
         </member>
         <member name="T:JetBrains.Util.EmptyArray`1">
@@ -41,27 +148,10 @@
         <member name="T:JetBrains.Util.EmptyArray">
             <summary>
             Reuses the single instance of an empty array (one per type).
-            This class is preferable over <see cref="!:EmptyList&lt;T&gt;"/> when you'd like to use SmartCompletion for completing the array type.
             </summary>
         </member>
         <member name="M:JetBrains.Util.EmptyArray.GetInstance``1">
             <summary>Synonym for <see cref="F:JetBrains.Util.EmptyArray`1.Instance"/></summary>
-        </member>
-        <member name="M:JetBrains.Util.src.dataStructures.BlockingPriorityQueue`1.ExtractOrBlock">
-            <summary>
-            Returns first element from queue or waits until it appears. In case of lifetime termination throws PCE.
-            </summary>
-            <returns>First element in queue</returns>
-        </member>
-        <member name="M:JetBrains.Util.src.dataStructures.BlockingPriorityQueue`1.Enqueue(`0)">
-            <summary>
-            Enqueues an item and returns the total number of items in the queue right after enqueueing, in a thread-safe-consistent manner.
-            </summary>
-        </member>
-        <member name="M:JetBrains.Util.src.dataStructures.BlockingPriorityQueue`1.ToArray">
-            <summary>
-            Copies data to an array, thread-safely.
-            </summary>
         </member>
         <member name="F:JetBrains.Util.MethodImplAdvancedOptions.AggressiveInlining">
             <summary>
@@ -168,10 +258,36 @@
             Get field or property type.
             </summary>
         </member>
+        <member name="T:JetBrains.Core.Maybe`1">
+            <summary>
+            Implementation of 'maybe' monad.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
         <member name="T:JetBrains.Core.Nothing">
             <summary>
             Type that has no instances. Subclass of all classes, so can be casted to any class.
             </summary>
+        </member>
+        <member name="M:JetBrains.Core.Nothing.As``1">
+            <summary>
+            Always throws <see cref="T:System.InvalidOperationException"/>. Could be used as a return value for unreachable code.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns>always fail</returns>
+        </member>
+        <member name="M:JetBrains.Core.Nothing.Unreachable``1">
+            <summary>
+            Always throws <see cref="T:System.InvalidOperationException"/>. Could be used as a return value for unreachable code.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns>always fail</returns>
+        </member>
+        <member name="M:JetBrains.Core.Nothing.Unreachable">
+            <summary>
+            Always throws <see cref="T:System.InvalidOperationException"/>. Could be used as an assertion in unreachable code.
+            </summary>
+            <returns>always fail</returns>
         </member>
         <member name="T:JetBrains.Core.Result">
             <summary>
@@ -463,7 +579,7 @@
             Recursive name. For constructs like Aaaa.Bbb::CCC
             </summary>
         </member>
-        <member name="M:JetBrains.Diagnostics.RName.Sub(System.String,System.String)">
+        <member name="M:JetBrains.Diagnostics.RName.Sub(System.Object,System.String)">
             <summary>
             Separator doesn't count if localName is empty or parent is empty.
             </summary>
@@ -522,6 +638,22 @@
               <para>Scopes your code in <paramref name="action" /> with a lifetime that is terminated automatically when <paramref name="action" /> completes execution, or when its execution is aborted by an exception.</para>
               <para>Analogous to the <c>using</c> statement of the C# language on everything that is added to the lifetime.</para>
             </summary>
+            <param name="action">The code to execute with a temporary lifetime.</param>
+        </member>
+        <member name="M:JetBrains.Lifetimes.Lifetime.UsingAsync(JetBrains.Lifetimes.OuterLifetime,System.Func{JetBrains.Lifetimes.Lifetime,System.Threading.Tasks.Task})">
+            <summary>
+              <para>Scopes your code in <paramref name="action" /> with a lifetime that is terminated automatically when <paramref name="action" /> completes execution, or when its execution is aborted by an exception.</para>
+              <para>Analogous to the <c>using</c> statement of the C# language on everything that is added to the lifetime.</para>
+            </summary>
+            <param name="parent">A parent lifetime which limits the lifetime given to your action, and migth terminate it before the action ends.</param>
+            <param name="action">The code to execute with a temporary lifetime.</param>
+        </member>
+        <member name="M:JetBrains.Lifetimes.Lifetime.UsingAsync``1(JetBrains.Lifetimes.OuterLifetime,System.Func{JetBrains.Lifetimes.Lifetime,System.Threading.Tasks.Task{``0}})">
+            <summary>
+              <para>Scopes your code in <paramref name="action" /> with a lifetime that is terminated automatically when <paramref name="action" /> completes execution, or when its execution is aborted by an exception.</para>
+              <para>Analogous to the <c>using</c> statement of the C# language on everything that is added to the lifetime.</para>
+            </summary>
+            <param name="parent">A parent lifetime which limits the lifetime given to your action, and migth terminate it before the action ends.</param>
             <param name="action">The code to execute with a temporary lifetime.</param>
         </member>
         <member name="M:JetBrains.Lifetimes.Lifetime.UsingNestedAsync``1(System.Func{JetBrains.Lifetimes.Lifetime,System.Threading.Tasks.Task{``0}})">
