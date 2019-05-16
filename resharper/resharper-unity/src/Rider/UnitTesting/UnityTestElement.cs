@@ -22,7 +22,7 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider.UnitTesting
         private readonly UnitTestElementId myId;
         private readonly UnityNUnitServiceProvider myUnityNUnitServiceProvider;
         private readonly string myMethodName;
-        private ISet<UnitTestElementCategory> myCategories;
+        private ISet<UnitTestElementCategory> myCategories = new HashSet<UnitTestElementCategory>() {new UnitTestElementCategory("UnityTests")};
         private string myExplicitReason;
 
         public UnityTestElement([NotNull] IProject project, [NotNull] IClrTypeName clrTypeName, UnitTestElementId id, UnityNUnitServiceProvider unityNUnitServiceProvider, string methodName)
