@@ -27,7 +27,7 @@ namespace JetBrains.ReSharper.Plugins.Unity.Rider.CodeInsights
             myBulbMenu = bulbMenu;
         }
         
-        public void OnClick(CodeInsightsHighlighting highlighting, ISolution solution)
+        public virtual void OnClick(CodeInsightsHighlighting highlighting, ISolution solution)
         {
             var windowContextSource = new PopupWindowContextSource(
                 lt => new HostTextControlPopupWindowContext(lt,
